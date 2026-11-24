@@ -1,0 +1,35 @@
+#!/usr/bin/make -f
+export TMPDIR := $(CURDIR)/.build-tmp
+export CARGO_HOME := $(CURDIR)/.build-cargo
+export CARGO_NET_OFFLINE := true
+export CARGO_BUILD_JOBS := 2
+export CMAKE_PREFIX_PATH := $(CURDIR)/.build-deps/usr
+export PKG_CONFIG_PATH := $(CURDIR)/.build-deps/usr/lib/pkgconfig:$(CURDIR)/.build-deps/usr/lib/x86_64-linux-gnu/pkgconfig
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all optimize=-lto
+export DEB_CXXFLAGS_MAINT_APPEND = -g0
+
+%:
+	mkdir -p "$(TMPDIR)"
+	dh $@ --buildsystem=cmake --builddirectory=out
+
+override_dh_auto_configure:
+	bash debian/build-deps.sh
+	dh_auto_configure -- -DCMAKE_BUILD_TYPE=Release -DDESKTOP_APP_USE_PACKAGED=ON -DDESKTOP_APP_DISABLE_AUTOUPDATE=ON -DDESKTOP_APP_DISABLE_CRASH_REPORTS=ON -DDESKTOP_APP_DISABLE_PRIVATE_QT_API=ON -DDESKTOP_APP_DISABLE_QT_PLUGINS=ON -DTDESKTOP_API_ID=611335 -DTDESKTOP_API_HASH=d524b414d21f4d37f08684c1df41ac9c -DQSB_EXECUTABLE=/usr/lib/qt6/bin/qsb -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib/x86_64-linux-gnu -DDESKTOP_APP_TDESKTOP_RUST_LIBRARY=$(CURDIR)/.build-deps/usr/lib/libtdesktop_rust.a -DTDESKTOP_CARGO=$(CURDIR)/.build-rust/bin/cargo
+
+override_dh_auto_build:
+	cmake --build out --parallel 2
+
+override_dh_auto_test:
+	python3 -B debian/check-source.py .
+
+override_dh_auto_install:
+	dh_auto_install --destdir=debian/telegram-desktop
+	ln -sf Telegram debian/telegram-desktop/usr/bin/telegram-desktop
+	install -Dm644 LICENSE debian/telegram-desktop/usr/share/doc/telegram-desktop/LICENSE.upstream
+	install -Dm644 LEGAL debian/telegram-desktop/usr/share/doc/telegram-desktop/LEGAL
+	install -Dm644 debian/SOURCE debian/telegram-desktop/usr/share/doc/telegram-desktop/SOURCE
+	python3 -B debian/collect-notices.py .
+
+# Cargo source checksums include .orig files; these are inputs, not detritus.
+override_dh_clean:
+	dh_clean -Xdeps/

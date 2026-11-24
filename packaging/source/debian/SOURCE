@@ -1,0 +1,15 @@
+Telegram Desktop native Ubuntu 26.04 LTS source build.
+
+Complete source inputs, bundled dependency sources, build-toolchain archives,
+and Debian packaging recipes are provided by the source package in OBS:
+https://build.opensuse.org/package/show/home:dwolfF:telegram/telegram-desktop
+
+Packaging and patches:
+https://github.com/lmdeuser/telegram-desktop-ubuntu-native
+
+Upstream:
+https://github.com/telegramdesktop/tdesktop/releases/tag/v7.4.6
+
+Native hardware video decoding defaults to enabled on Linux. The upstream backend
+selector and software fallback are preserved. Hardware and driver support varies.
+Existing user preferences are not overwritten by the new default.

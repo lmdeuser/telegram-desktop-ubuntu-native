@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.build-tmp/
+.build-cargo/
+.build-deps/
+.build-rust/
+*.deb
+*.dsc
+*.changes
+*.buildinfo
+*.tar.*
